@@ -13,6 +13,7 @@
   ],
   "author": "Raikkonen (Oliver Pechey)",
   "license": "ISC",
+  "repository": "https://github.com/ollieraikkonen/Freelancer-Save-Parser",
   "dependencies": {
     "@nodecraft/ini": "^2.2.0"
   }
