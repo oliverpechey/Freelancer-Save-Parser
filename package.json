@@ -1,0 +1,19 @@
+{
+  "name": "freelancer-save-parser",
+  "version": "1.0.0",
+  "description": "A package to parse Freelancer Multiplayer saves so they can be used in a node.js application.",
+  "type": "module",
+  "main": "main.js",
+  "keywords": [
+    "freelancer",
+    "multiplayer",
+    "save",
+    "game",
+    "parser"
+  ],
+  "author": "Raikkonen (Oliver Pechey)",
+  "license": "ISC",
+  "dependencies": {
+    "@nodecraft/ini": "^2.2.0"
+  }
+}
