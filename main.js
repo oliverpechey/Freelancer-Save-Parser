@@ -40,7 +40,7 @@ const TraverseDirectory = (Directory) => {
 Internal Function - Compares two player's ranks for use in SortPlayerFiles()
 Params: Two player objects
 */
-const CompareRank = (a,b) => {
+const CompareRank = (a, b) => {
     return parseInt(a.rank) - parseInt(b.rank);
 }
 
@@ -48,7 +48,7 @@ const CompareRank = (a,b) => {
 Internal Function - Compares two player's ranks for use in SortPlayerFiles()
 Params: Two player objects
 */
-const CompareName = (a,b) => {
+const CompareName = (a, b) => {
     return a.name.localeCompare(b.name);
 }
 
@@ -56,94 +56,97 @@ const CompareName = (a,b) => {
 Internal Function - Compares two player's ranks for use in SortPlayerFiles()
 Params: Two player objects
 */
-const CompareLastSeen = (a,b) => {
+const CompareLastSeen = (a, b) => {
     return a.lastseen - b.lastseen;
 }
 
-/*
-Exported Function - Sorts the player files according to the specified field.
-Returns: Array containing player objects.
-Params:
-    PlayerFiles - Array containing player objects
-    Sort (string) - Name, Rank, LastSeen - Sort by one of these fields in descending order
-*/
-const SortPlayerFiles = (PlayerFiles,Sort) => {
-    console.log(Sort);
-    switch(Sort) {
-        case 'Name':
-            return PlayerFiles.sort(CompareName);
-        case 'Rank':
-            return PlayerFiles.sort(CompareRank);
-        case 'LastSeen':
-            return PlayerFiles.sort(CompareLastSeen);
-        default: return PlayerFiles;
-    }
-}
+class Parser {
+    // An array to store all the parsed player objects in
+    players = [];
 
-/* 
-Exported Function - Main function that parses the player files
-Returns: Array containing player objects
-Params:
-    SaveLocation (string) - The location of the player files
-    Range - Time period for which you wish to return player files for
-    RangeType (string) - LastSeen, Created - Which field to use in the range
-*/
-const ParsePlayerFiles = (SaveLocation, Range, RangeType) => {
-    let players = [];
-    let playerFiles = TraverseDirectory(SaveLocation);
-    for (const pf of playerFiles) {
-        let config = ini.parse(fs.readFileSync(pf, 'utf8'), { inlineArrays: true });
-        if (Object.keys(config).length != 0) {
-            let p = {};
-            p.name = config.Player.name.hexDecode();
-            p.system = config.Player.system;
-            p.rank = parseInt(config.Player.rank);
-            p.lastseen = fs.statSync(pf).mtime;
-            p.pvpkills = parseInt(config.Player.num_kills);
-            p.money = parseInt(config.Player.money);
-            p.shiparch = config.Player.ship_archetype;
-
-            if (!config.Player.base)
-                p.base = 'In Space';
-            else
-                p.base = config.Player.base;
-
-            if (!config.Player.rep_group)
-                p.faction = "Freelancer";
-            else
-                p.faction = config.Player.rep_group;
-
-            if (config.mPlayer) {
-
-                if (config.mPlayer.rm_completed) {
-                    if (Array.isArray(config.mPlayer.rm_completed)) {
-                        for (const m of config.mPlayer.rm_completed)
-                            p.missions += parseInt(m.split(',')[1]);
-                    }
-                    else
-                        p.missions = parseInt(config.mPlayer.rm_completed.split(',')[1]);
-                }
-                else p.mission = 0;
-
-                if (config.mPlayer.ship_type_killed) {
-                    if (Array.isArray(config.mPlayer.ship_type_killed)) {
-                        for (const k of config.mPlayer.ship_type_killed)
-                            p.kills += parseInt(k.split(',')[1]);
-                    }
-                    else
-                        p.kills = parseInt(config.mPlayer.ship_type_killed.split(',')[1]);
-                }
-                else p.kills = 0;
-
-                p.timePlayed = config.mPlayer.total_time_played ? config.mPlayer.total_time_played : 0;
-                p.basesVisited = config.mPlayer.base_visited ? Array.isArray(config.mPlayer.base_visited) ? config.mPlayer.base_visited.length : 1 : 0;
-                p.systemsVisited = config.mPlayer.sys_visited ? Array.isArray(config.mPlayer.sys_visited) ? config.mPlayer.sys_visited.length : 1 : 0;
-                p.holesVisited = config.mPlayer.holes_visited ? Array.isArray(config.mPlayer.holes_visited) ? config.mPlayer.holes_visited.length : 1 : 0;
-            }
-            players.push(p);
+    /*
+    Sorts the player files according to the specified field.
+    Param: Sort (string) - Name, Rank, LastSeen - Sort by one of these fields in descending order
+    */
+    SortPlayerFiles(Sort) {
+        switch (Sort) {
+            case 'Name':
+                this.players = this.players.sort(CompareName);
+                break;
+            case 'Rank':
+                this.players = this.players.sort(CompareRank);
+                break;
+            case 'LastSeen':
+                this.players = this.players.sort(CompareLastSeen);
+                break;
         }
+        return this;
     }
-    return players;
-}
 
-export default { ParsePlayerFiles, SortPlayerFiles }
+    /* 
+    Main function that parses the player files
+    Params:
+        SaveLocation (string) - The location of the player files
+        Range - Time period for which you wish to return player files for
+        RangeType (string) - LastSeen, Created - Which field to use in the range
+    */
+    ParsePlayerFiles(SaveLocation, Range, RangeType) {
+        this.players = [];
+        let playerFiles = TraverseDirectory(SaveLocation);
+        for (const pf of playerFiles) {
+            let config = ini.parse(fs.readFileSync(pf, 'utf8'), { inlineArrays: true });
+            if (Object.keys(config).length != 0) {
+                let p = {};
+                p.name = config.Player.name.hexDecode();
+                p.system = config.Player.system;
+                p.rank = parseInt(config.Player.rank);
+                p.lastseen = fs.statSync(pf).mtime;
+                p.pvpkills = parseInt(config.Player.num_kills);
+                p.money = parseInt(config.Player.money);
+                p.shiparch = config.Player.ship_archetype;
+
+                if (!config.Player.base)
+                    p.base = 'In Space';
+                else
+                    p.base = config.Player.base;
+
+                if (!config.Player.rep_group)
+                    p.faction = "Freelancer";
+                else
+                    p.faction = config.Player.rep_group;
+
+                if (config.mPlayer) {
+
+                    if (config.mPlayer.rm_completed) {
+                        if (Array.isArray(config.mPlayer.rm_completed)) {
+                            for (const m of config.mPlayer.rm_completed)
+                                p.missions += parseInt(m.split(',')[1]);
+                        }
+                        else
+                            p.missions = parseInt(config.mPlayer.rm_completed.split(',')[1]);
+                    }
+                    else p.mission = 0;
+
+                    if (config.mPlayer.ship_type_killed) {
+                        if (Array.isArray(config.mPlayer.ship_type_killed)) {
+                            for (const k of config.mPlayer.ship_type_killed)
+                                p.kills += parseInt(k.split(',')[1]);
+                        }
+                        else
+                            p.kills = parseInt(config.mPlayer.ship_type_killed.split(',')[1]);
+                    }
+                    else p.kills = 0;
+
+                    p.timePlayed = config.mPlayer.total_time_played ? config.mPlayer.total_time_played : 0;
+                    p.basesVisited = config.mPlayer.base_visited ? Array.isArray(config.mPlayer.base_visited) ? config.mPlayer.base_visited.length : 1 : 0;
+                    p.systemsVisited = config.mPlayer.sys_visited ? Array.isArray(config.mPlayer.sys_visited) ? config.mPlayer.sys_visited.length : 1 : 0;
+                    p.holesVisited = config.mPlayer.holes_visited ? Array.isArray(config.mPlayer.holes_visited) ? config.mPlayer.holes_visited.length : 1 : 0;
+                }
+                this.players.push(p);
+            }
+        }
+        return this;
+    }
+};
+
+export default { Parser }
