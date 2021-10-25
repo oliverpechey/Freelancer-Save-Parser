@@ -70,7 +70,7 @@ class Parser {
         Sort (string) - Name, Rank, LastSeen - Sort by one of these fields
         Direction (string - optional) - Desc - Add this to sort in descending order
     */
-    SortPlayerFiles(Sort,Direction) {
+    SortPlayerFiles(Sort, Direction) {
         switch (Sort) {
             case 'Name':
                 this.players = this.players.sort(CompareName);
@@ -82,7 +82,7 @@ class Parser {
                 this.players = this.players.sort(CompareLastSeen);
                 break;
         }
-        if(Direction == 'Desc')
+        if (Direction == 'Desc')
             this.players = this.players.reverse();
         return this;
     }
@@ -91,20 +91,31 @@ class Parser {
     Main function that parses the player files
     Params:
         SaveLocation (string) - The location of the player files
-        Range - Time period for which you wish to return player files for
+        Range (integer, optional) - Amount of days. To be used with next parameter. 
+            e.g. Setting Range to 7 and RangeType to 'LastSeen' will filter the results to show only the players who have been seen in the last 7 days.
         RangeType (string) - LastSeen, Created - Which field to use in the range
     */
-    ParsePlayerFiles(SaveLocation, Range, RangeType) {
+    ParsePlayerFiles(SaveLocation, Range, RangeType = 'LastSeen') {
         this.players = [];
         let playerFiles = TraverseDirectory(SaveLocation);
         for (const pf of playerFiles) {
             let config = ini.parse(fs.readFileSync(pf, 'utf8'), { inlineArrays: true });
             if (Object.keys(config).length != 0) {
                 let p = {};
+                p.lastseen = fs.statSync(pf).mtime;
+                p.created = fs.statSync(pf).birthtime;
+
+                if (typeof Range !== 'undefined') {
+                    let DateAfter = new Date(Date.now() - Range * 24 * 60 * 60 * 1000);
+                    if (RangeType == 'LastSeen' && p.lastseen < DateAfter)
+                        continue;
+                    else if (RangeType == 'Created' && p.created < DateAfter)
+                        continue;
+                }
+
                 p.name = config.Player.name.hexDecode();
                 p.system = config.Player.system;
                 p.rank = parseInt(config.Player.rank);
-                p.lastseen = fs.statSync(pf).mtime;
                 p.pvpkills = parseInt(config.Player.num_kills);
                 p.money = parseInt(config.Player.money);
                 p.shiparch = config.Player.ship_archetype;
