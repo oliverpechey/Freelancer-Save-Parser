@@ -119,19 +119,16 @@ class Parser {
                 p.pvpkills = parseInt(config.Player.num_kills);
                 p.money = parseInt(config.Player.money);
                 p.shiparch = config.Player.ship_archetype;
-
-                if (!config.Player.base)
-                    p.base = 'In Space';
-                else
-                    p.base = config.Player.base;
-
-                if (!config.Player.rep_group)
-                    p.faction = "Freelancer";
-                else
-                    p.faction = config.Player.rep_group;
+                p.base = config.Player.base ? config.Player.base : 'In Space';
+                p.faction = config.Player.rep_group ? config.Player.rep_group : 'Freelancer';
 
                 if (config.mPlayer) {
+                    p.timePlayed = config.mPlayer.total_time_played ? config.mPlayer.total_time_played : 0;
+                    p.basesVisited = config.mPlayer.base_visited ? Array.isArray(config.mPlayer.base_visited) ? config.mPlayer.base_visited.length : 1 : 0;
+                    p.systemsVisited = config.mPlayer.sys_visited ? Array.isArray(config.mPlayer.sys_visited) ? config.mPlayer.sys_visited.length : 1 : 0;
+                    p.holesVisited = config.mPlayer.holes_visited ? Array.isArray(config.mPlayer.holes_visited) ? config.mPlayer.holes_visited.length : 1 : 0;
 
+                    p.missions = 0;
                     if (config.mPlayer.rm_completed) {
                         if (Array.isArray(config.mPlayer.rm_completed)) {
                             for (const m of config.mPlayer.rm_completed)
@@ -140,8 +137,8 @@ class Parser {
                         else
                             p.missions = parseInt(config.mPlayer.rm_completed.split(',')[1]);
                     }
-                    else p.mission = 0;
 
+                    p.kills = 0;
                     if (config.mPlayer.ship_type_killed) {
                         if (Array.isArray(config.mPlayer.ship_type_killed)) {
                             for (const k of config.mPlayer.ship_type_killed)
@@ -150,12 +147,6 @@ class Parser {
                         else
                             p.kills = parseInt(config.mPlayer.ship_type_killed.split(',')[1]);
                     }
-                    else p.kills = 0;
-
-                    p.timePlayed = config.mPlayer.total_time_played ? config.mPlayer.total_time_played : 0;
-                    p.basesVisited = config.mPlayer.base_visited ? Array.isArray(config.mPlayer.base_visited) ? config.mPlayer.base_visited.length : 1 : 0;
-                    p.systemsVisited = config.mPlayer.sys_visited ? Array.isArray(config.mPlayer.sys_visited) ? config.mPlayer.sys_visited.length : 1 : 0;
-                    p.holesVisited = config.mPlayer.holes_visited ? Array.isArray(config.mPlayer.holes_visited) ? config.mPlayer.holes_visited.length : 1 : 0;
                 }
                 this.players.push(p);
             }
