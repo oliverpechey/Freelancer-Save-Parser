@@ -3,34 +3,94 @@ import ini from '@nodecraft/ini';
 import fs from 'fs';
 import path from 'path';
 
-// Decodes the name string in the .fl files
+/*
+Internal Function - Decodes the name string in the .fl files.
+Returns: String containing the name in the UTF-16 format.
+*/
 String.prototype.hexDecode = function () {
+    // Filter out line breaks
     let hexes = this.match(/.{1,4}/g) || [];
-    let back = "";
+    // For each character, convert from hex back into decimal and get the char code in UTF-16
+    let name = '';
     for (let i = 0; i < hexes.length; i++) {
-        back += String.fromCharCode(parseInt(hexes[i], 16));
+        name += String.fromCharCode(parseInt(hexes[i], 16));
     }
-    return back;
+    return name;
 }
 
-// Used to grab all .fl files in a directory recursively
-const traverseDir = (dir) => {
-    let playerFiles = [];
-    fs.readdirSync(dir).forEach(file => {
-        let fullPath = path.join(dir, file);
+/*
+Internal Function - Used to grab all .fl files in a directory recursively.
+Returns: Array containing the file paths of all .fl files in the directory.
+Params: Directory - The directory that you wish to search for .fl files in.
+*/
+const TraverseDirectory = (Directory) => {
+    let PlayerFilePaths = [];
+    fs.readdirSync(Directory).forEach(file => {
+        let fullPath = path.join(Directory, file);
         if (fs.lstatSync(fullPath).isDirectory()) {
-            playerFiles.push(...traverseDir(fullPath));
+            PlayerFilePaths.push(...TraverseDirectory(fullPath));
         } else if (fullPath.slice(-2) == 'fl') {
-            playerFiles.push(fullPath);
+            PlayerFilePaths.push(fullPath);
         }
     });
-    return playerFiles;
+    return PlayerFilePaths;
 }
 
-// Load player stats into a map
-const loadPlayerFiles = (SaveLocation) => {
+/* 
+Internal Function - Compares two player's ranks for use in SortPlayerFiles()
+Params: Two player objects
+*/
+const CompareRank = (a,b) => {
+    return parseInt(a.rank) - parseInt(b.rank);
+}
+
+/* 
+Internal Function - Compares two player's ranks for use in SortPlayerFiles()
+Params: Two player objects
+*/
+const CompareName = (a,b) => {
+    return a.name.localeCompare(b.name);
+}
+
+/* 
+Internal Function - Compares two player's ranks for use in SortPlayerFiles()
+Params: Two player objects
+*/
+const CompareLastSeen = (a,b) => {
+    return a.lastseen - b.lastseen;
+}
+
+/*
+Exported Function - Sorts the player files according to the specified field.
+Returns: Array containing player objects.
+Params:
+    PlayerFiles - Array containing player objects
+    Sort (string) - Name, Rank, LastSeen - Sort by one of these fields in descending order
+*/
+const SortPlayerFiles = (PlayerFiles,Sort) => {
+    console.log(Sort);
+    switch(Sort) {
+        case 'Name':
+            return PlayerFiles.sort(CompareName);
+        case 'Rank':
+            return PlayerFiles.sort(CompareRank);
+        case 'LastSeen':
+            return PlayerFiles.sort(CompareLastSeen);
+        default: return PlayerFiles;
+    }
+}
+
+/* 
+Exported Function - Main function that parses the player files
+Returns: Array containing player objects
+Params:
+    SaveLocation (string) - The location of the player files
+    Range - Time period for which you wish to return player files for
+    RangeType (string) - LastSeen, Created - Which field to use in the range
+*/
+const ParsePlayerFiles = (SaveLocation, Range, RangeType) => {
     let players = [];
-    let playerFiles = traverseDir(SaveLocation);
+    let playerFiles = TraverseDirectory(SaveLocation);
     for (const pf of playerFiles) {
         let config = ini.parse(fs.readFileSync(pf, 'utf8'), { inlineArrays: true });
         if (Object.keys(config).length != 0) {
@@ -57,7 +117,7 @@ const loadPlayerFiles = (SaveLocation) => {
 
                 if (config.mPlayer.rm_completed) {
                     if (Array.isArray(config.mPlayer.rm_completed)) {
-                        for (m of config.mPlayer.rm_completed)
+                        for (const m of config.mPlayer.rm_completed)
                             p.missions += parseInt(m.split(',')[1]);
                     }
                     else
@@ -86,4 +146,4 @@ const loadPlayerFiles = (SaveLocation) => {
     return players;
 }
 
-export default { loadPlayerFiles }
+export default { ParsePlayerFiles, SortPlayerFiles }
