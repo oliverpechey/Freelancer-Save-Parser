@@ -98,8 +98,10 @@ class Parser {
     ParsePlayerFiles(SaveLocation, Range, RangeType = 'LastSeen') {
         this.players = [];
         let playerFiles = TraverseDirectory(SaveLocation);
+
         for (const pf of playerFiles) {
             let config = ini.parse(fs.readFileSync(pf, 'utf8'), { inlineArrays: true });
+
             if (Object.keys(config).length != 0) {
                 let p = {};
                 p.lastseen = fs.statSync(pf).mtime;
