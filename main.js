@@ -66,9 +66,11 @@ class Parser {
 
     /*
     Sorts the player files according to the specified field.
-    Param: Sort (string) - Name, Rank, LastSeen - Sort by one of these fields in descending order
+    Params: 
+        Sort (string) - Name, Rank, LastSeen - Sort by one of these fields
+        Direction (string - optional) - Desc - Add this to sort in descending order
     */
-    SortPlayerFiles(Sort) {
+    SortPlayerFiles(Sort,Direction) {
         switch (Sort) {
             case 'Name':
                 this.players = this.players.sort(CompareName);
@@ -80,6 +82,8 @@ class Parser {
                 this.players = this.players.sort(CompareLastSeen);
                 break;
         }
+        if(Direction == 'Desc')
+            this.players = this.players.reverse();
         return this;
     }
 
