@@ -2,11 +2,12 @@
 import ini from '@nodecraft/ini';
 import fs from 'fs';
 import path from 'path';
+import hash from 'freelancer-hash';
 
-/*
-Internal Function - Decodes the name string in the .fl files.
-Returns: String containing the name in the UTF-16 format.
-*/
+/**
+ * Decodes the name string in the .fl files.
+ * @returns {string} containing the name in the UTF-16 format.
+ */
 String.prototype.hexDecode = function () {
     // Filter out line breaks
     let hexes = this.match(/.{1,4}/g) || [];
@@ -18,86 +19,96 @@ String.prototype.hexDecode = function () {
     return name;
 }
 
-/*
-Internal Function - Used to grab all .fl files in a directory recursively.
-Returns: Array containing the file paths of all .fl files in the directory.
-Params: Directory - The directory that you wish to search for .fl files in.
-*/
-const TraverseDirectory = (Directory) => {
-    let PlayerFilePaths = [];
-    fs.readdirSync(Directory).forEach(file => {
-        let fullPath = path.join(Directory, file);
+/**
+ * Used to grab all .fl files in a directory recursively.
+ * @param {string} directory The directory that you wish to search for .fl files in.
+ * @returns {string[]} containing the file paths of all .fl files in the directory.
+ */
+const traverseDirectory = (directory) => {
+    let playerFilePaths = [];
+    fs.readdirSync(directory).forEach(file => {
+        let fullPath = path.join(directory, file);
         if (fs.lstatSync(fullPath).isDirectory()) {
-            PlayerFilePaths.push(...TraverseDirectory(fullPath));
+            playerFilePaths.push(...traverseDirectory(fullPath));
         } else if (fullPath.slice(-2) == 'fl') {
-            PlayerFilePaths.push(fullPath);
+            playerFilePaths.push(fullPath);
         }
     });
-    return PlayerFilePaths;
+    return playerFilePaths;
 }
 
-/* 
-Internal Function - Compares two player's ranks for use in SortPlayerFiles()
-Params: Two player objects
-*/
-const CompareRank = (a, b) => {
+/**
+ * Compares two player's ranks for use in sortPlayerFiles()
+ * @param {number} a 
+ * @param {number} b 
+ * @returns {number} Positive or negative decides which one is sorted first
+ */
+const compareRank = (a, b) => {
     return parseInt(a.rank) - parseInt(b.rank);
 }
 
-/* 
-Internal Function - Compares two player's ranks for use in SortPlayerFiles()
-Params: Two player objects
-*/
-const CompareName = (a, b) => {
+/**
+ * Compares two player's namees for use in sortPlayerFiles()
+ * @param {string} a 
+ * @param {string} b 
+ * @returns {number} Positive or negative decides which one is sorted first
+ */
+const compareName = (a, b) => {
     return a.name.localeCompare(b.name);
 }
 
-/* 
-Internal Function - Compares two player's ranks for use in SortPlayerFiles()
-Params: Two player objects
-*/
-const CompareLastSeen = (a, b) => {
+/**
+ * Compares two player's last activity for use in sortPlayerFiles()
+ * @param {date} a 
+ * @param {date} b 
+ * @returns {number} Positive or negative decides which one is sorted first
+ */
+const compareLastSeen = (a, b) => {
     return a.lastseen - b.lastseen;
 }
 
 class Parser {
-    // An array to store all the parsed player objects in
-    players = [];
+    /**
+     * Constructor for the class. Initializes FLHash for use when parsing the save files.
+     * @param {string} installDirectory The DATA directory for Freelancer. Used for FLHash to get names 
+     */
+    constructor(installDirectory) {
+        this.hash = new hash.FreelancerHash(installDirectory);
+    }
 
-    /*
-    Sorts the player files according to the specified field.
-    Params: 
-        Sort (string) - Name, Rank, LastSeen - Sort by one of these fields
-        Direction (string - optional) - Desc - Add this to sort in descending order
+   /**
+    * 
+    * @param {string} sort Name, Rank, LastSeen - Sort by one of these fields
+    * @param {string} direction Optional - Desc - Add this to sort in descending order 
+    * @returns {object} The Parser object for method chaining
     */
-    SortPlayerFiles(Sort, Direction) {
-        switch (Sort) {
+    sortPlayerFiles(sort, direction) {
+        switch (sort) {
             case 'Name':
-                this.players = this.players.sort(CompareName);
+                this.players = this.players.sort(compareName);
                 break;
             case 'Rank':
-                this.players = this.players.sort(CompareRank);
+                this.players = this.players.sort(compareRank);
                 break;
             case 'LastSeen':
-                this.players = this.players.sort(CompareLastSeen);
+                this.players = this.players.sort(compareLastSeen);
                 break;
         }
-        if (Direction == 'Desc')
+        if (direction == 'Desc')
             this.players = this.players.reverse();
         return this;
     }
 
-    /* 
-    Main function that parses the player files
-    Params:
-        SaveLocation (string) - The location of the player files
-        Range (integer, optional) - Amount of days. To be used with next parameter. 
-            e.g. Setting Range to 7 and RangeType to 'LastSeen' will filter the results to show only the players who have been seen in the last 7 days.
-        RangeType (string) - LastSeen, Created - Which field to use in the range
-    */
-    ParsePlayerFiles(SaveLocation, Range, RangeType = 'LastSeen') {
+    /**
+     * 
+     * @param {string} saveLocation The location of the player files
+     * @param {string} range Optional - Amount of days. To be used with next parameter. e.g. Setting Range to 7 and RangeType to 'LastSeen' will filter the results to show only the players who have been seen in the last 7 days.
+     * @param {string} rangeType Optional - LastSeen, Created - Which field to use in the range
+     * @returns {object} The Parser object for method chaining
+     */
+    parsePlayerFiles(saveLocation, range, rangeType = 'LastSeen') {
         this.players = [];
-        let playerFiles = TraverseDirectory(SaveLocation);
+        let playerFiles = traverseDirectory(saveLocation);
 
         for (const pf of playerFiles) {
             let config = ini.parse(fs.readFileSync(pf, 'utf8'), { inlineArrays: true });
@@ -107,11 +118,11 @@ class Parser {
                 p.lastseen = fs.statSync(pf).mtime;
                 p.created = fs.statSync(pf).birthtime;
 
-                if (typeof Range !== 'undefined') {
-                    let DateAfter = new Date(Date.now() - Range * 24 * 60 * 60 * 1000);
-                    if (RangeType == 'LastSeen' && p.lastseen < DateAfter)
+                if (range) {
+                    let dateAfter = new Date(Date.now() - range * 24 * 60 * 60 * 1000);
+                    if (rangeType == 'LastSeen' && p.lastseen < dateAfter)
                         continue;
-                    else if (RangeType == 'Created' && p.created < DateAfter)
+                    else if (rangeType == 'Created' && p.created < dateAfter)
                         continue;
                 }
                 if (config.Player) {
@@ -120,7 +131,7 @@ class Parser {
                     p.rank = parseInt(config.Player.rank);
                     p.pvpkills = parseInt(config.Player.num_kills);
                     p.money = parseInt(config.Player.money);
-                    p.shiparch = config.Player.ship_archetype;
+                    p.shiparch = this.hash.getNickname(Number(config.Player.ship_archetype));
                     p.base = config.Player.base ? config.Player.base : 'In Space';
                     p.faction = config.Player.rep_group ? config.Player.rep_group : 'Freelancer';
 
