@@ -15,6 +15,7 @@
   "license": "ISC",
   "repository": "https://github.com/ollieraikkonen/Freelancer-Save-Parser",
   "dependencies": {
-    "@nodecraft/ini": "^2.2.0"
+    "@nodecraft/ini": "^2.2.0",
+    "freelancer-hash": "^1.0.1"
   }
 }

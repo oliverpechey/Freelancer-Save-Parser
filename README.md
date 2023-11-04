@@ -12,7 +12,7 @@ Then in your project:
 ````javascript
 import playerParser from 'freelancer-save-parser';
 
-let players = new playerParser.Parser().parsePlayerFiles('C:\\Users\\Raikkonen\\Documents\\My Games\\Freelancer\\Accts\\MultiPlayer').players;
+let players = new playerParser.Parser('C:\\Freelancer HD Edition','C:\\Users\\Raikkonen\\Documents\\My Games\\Freelancer\\Accts\\MultiPlayer').players;
 ````
 
 ## Filter by Created / Last Seen
@@ -22,13 +22,13 @@ You can also filter by either when the player was last seen (Date Modified) or w
 The below example will return characters who have been online in the last 7 days:
 
 ````javascript
-let players = new playerParser.Parser().parsePlayerFiles('C:\\Users\\Raikkonen\\Documents\\My Games\\Freelancer\\Accts\\MultiPlayer', 7, 'LastSeen').players;
+let players = new playerParser.Parser('C:\\Freelancer HD Edition','C:\\Users\\Raikkonen\\Documents\\My Games\\Freelancer\\Accts\\MultiPlayer').filter(7, 'LastSeen').players;
 ````
 
 The below example will return characters who have been created in the last 365 days: 
 
 ````javascript
-let players = new playerParser.Parser().parsePlayerFiles('C:\\Users\\Raikkonen\\Documents\\My Games\\Freelancer\\Accts\\MultiPlayer', 365, 'Created').players;
+let players = new playerParser.Parser('C:\\Freelancer HD Edition','C:\\Users\\Raikkonen\\Documents\\My Games\\Freelancer\\Accts\\MultiPlayer').filter(365, 'Created').players;
 ````
 
 ## Sorting
@@ -39,7 +39,7 @@ You can also sort by **Name**, **Rank** or **LastSeen** in Ascending (default) o
 **2nd Parameter (optional)**: Desc
 
 ````javascript
-let players = new playerParser.Parser().parsePlayerFiles('C:\\Users\\Raikkonen\\Documents\\My Games\\Freelancer\\Accts\\MultiPlayer').sortPlayerFiles('LastSeen', 'Desc').players;
+let players = new playerParser.Parser('C:\\Freelancer HD Edition','C:\\Users\\Raikkonen\\Documents\\My Games\\Freelancer\\Accts\\MultiPlayer').sort('LastSeen', 'Desc').players;
 ````
 
 ## Example of output
