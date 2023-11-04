@@ -1,6 +1,6 @@
 {
   "name": "freelancer-save-parser",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "description": "A package to parse Freelancer Multiplayer saves so they can be used in a node.js application.",
   "type": "module",
   "main": "main.js",
