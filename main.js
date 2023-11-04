@@ -248,8 +248,8 @@ class Parser {
                                 player.kills = parseInt(config.mPlayer.ship_type_killed.split(',')[1]);
                         }
                     }
+                    this.players.push(player);
                 }
-                this.players.push(player);
             }
         }
         return this;

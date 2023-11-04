@@ -58,14 +58,15 @@ let players = new playerParser.Parser('C:\\Freelancer HD Edition','C:\\Users\\Ra
     internalShip: "li_elite",
     ship: "Defender",
     internalBase: "Iw04_01_Base",
+    base: "Planet Curaçao",
     internalFaction: "",
     faction: "Freelancer",
     timePlayed: "2898.000000",
-    basesVisited: 7,
-    systemsVisited: 20,
-    holesVisited: 26,
-    missions: 28,
-    kills: 457
+    basesVisited: 6,
+    systemsVisited: 3,
+    holesVisited: 0,
+    missions: 4,
+    kills: 3
   },
   {
     lastseen: "2023-02-04T11:25:44.784Z",
