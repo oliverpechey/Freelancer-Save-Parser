@@ -211,15 +211,15 @@ class Parser {
                 if (config.Player) {
                     player.name = config.Player.name.hexDecode();
                     player.internalSystem = config.Player.system;
-                    player.system = this.universe.get(config.Player.system.toLowerCase());
+                    player.system = config.Player.system ? this.universe.get(config.Player.system.toLowerCase()) : null;
                     player.rank = parseInt(config.Player.rank);
                     player.pvpkills = parseInt(config.Player.num_kills);
                     player.money = parseInt(config.Player.money);
-                    player.internalShip = this.hash.getNickname(Number(config.Player.ship_archetype));
-                    player.ship = this.ships.get(player.internalShip.toLowerCase());
-                    player.internalBase = config.Player.base ? config.Player.base : '';
+                    player.internalShip = config.Player.ship_archetype ? this.hash.getNickname(Number(config.Player.ship_archetype)) : null;
+                    player.ship = player.internalShip ? this.ships.get(player.internalShip.toLowerCase()) : null;
+                    player.internalBase = config.Player.base ? config.Player.base : null;
                     player.base = config.Player.base ? this.universe.get(config.Player.base.toLowerCase()): 'In Space';
-                    player.internalFaction = config.Player.rep_group ? config.Player.rep_group : '';
+                    player.internalFaction = config.Player.rep_group ? config.Player.rep_group : null;
                     player.faction = config.Player.rep_group ? this.factions.get(config.Player.rep_group) : 'Freelancer';
 
                     if (config.mPlayer) {
