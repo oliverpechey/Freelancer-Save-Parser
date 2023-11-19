@@ -34,6 +34,12 @@ class Parser {
         this.ships = this.extractInis('DATA\\SHIPS\\shiparch.ini','\r\nnickname = ','\r\nids_name = ');
         this.universe = this.extractInis('DATA\\UNIVERSE\\universe.ini','\r\nnickname = ','\r\nstrid_name = ');
         this.factions = this.extractInis('DATA\\initialworld.ini','\r\nnickname = ','\r\nids_name = ');
+
+        const engines = this.extractInis('DATA\\EQUIPMENT\\engine_equip.ini','\r\nnickname = ','\r\nids_name = ');
+        const equipment = this.extractInis('DATA\\EQUIPMENT\\st_equip.ini','\r\nnickname = ','\r\nids_name = ');
+        const weapons = this.extractInis('DATA\\EQUIPMENT\\weapon_equip.ini','\r\nnickname = ','\r\nids_name = ');
+        const misc = this.extractInis('DATA\\EQUIPMENT\\misc_equip.ini','\r\nnickname = ','\r\nids_name = ');
+        this.equipment = new Map([...engines, ...equipment, ...weapons, ...misc]);
         return this.parsePlayerFiles();
     }
 
@@ -246,6 +252,26 @@ class Parser {
                             }
                             else
                                 player.kills = parseInt(config.mPlayer.ship_type_killed.split(',')[1]);
+                        }
+
+                        if(config.Player.equip) {
+                            player.equipment = [];
+                            player.lights = [];
+
+                            for(const equipString of config.Player.equip) {
+                                const [hash, hardpoint, quantity] = equipString.split(', ');
+                                const internalNickname = this.hash.getNickname(Number(hash));
+
+                                if(hardpoint.toLowerCase().includes('light')) {
+                                    player.lights.push({[internalNickname] : quantity});
+                                }
+                                else {
+                                    const nickname = this.equipment.get(internalNickname);
+                                    if(internalNickname && !internalNickname.includes('contrail')) {
+                                        player.equipment.push({[nickname ? nickname : internalNickname] : quantity});
+                                    }
+                                }
+                            }
                         }
                     }
                     this.players.push(player);
