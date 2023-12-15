@@ -31,14 +31,14 @@ class Parser {
         this.saveDirectory = saveDirectory;
         this.hash = new hash.FreelancerHash(installDirectory);
         this.infocards = this.infocardCheck();
-        this.ships = this.extractInis('DATA\\SHIPS\\shiparch.ini','\r\nnickname = ','\r\nids_name = ');
-        this.universe = this.extractInis('DATA\\UNIVERSE\\universe.ini','\r\nnickname = ','\r\nstrid_name = ');
-        this.factions = this.extractInis('DATA\\initialworld.ini','\r\nnickname = ','\r\nids_name = ');
+        this.ships = this.extractInis('DATA\\SHIPS\\shiparch.ini', '\r\nnickname = ', '\r\nids_name = ');
+        this.universe = this.extractInis('DATA\\UNIVERSE\\universe.ini', '\r\nnickname = ', '\r\nstrid_name = ');
+        this.factions = this.extractInis('DATA\\initialworld.ini', '\r\nnickname = ', '\r\nids_name = ');
 
-        const engines = this.extractInis('DATA\\EQUIPMENT\\engine_equip.ini','\r\nnickname = ','\r\nids_name = ');
-        const equipment = this.extractInis('DATA\\EQUIPMENT\\st_equip.ini','\r\nnickname = ','\r\nids_name = ');
-        const weapons = this.extractInis('DATA\\EQUIPMENT\\weapon_equip.ini','\r\nnickname = ','\r\nids_name = ');
-        const misc = this.extractInis('DATA\\EQUIPMENT\\misc_equip.ini','\r\nnickname = ','\r\nids_name = ');
+        const engines = this.extractInis('DATA\\EQUIPMENT\\engine_equip.ini', '\r\nnickname = ', '\r\nids_name = ');
+        const equipment = this.extractInis('DATA\\EQUIPMENT\\st_equip.ini', '\r\nnickname = ', '\r\nids_name = ');
+        const weapons = this.extractInis('DATA\\EQUIPMENT\\weapon_equip.ini', '\r\nnickname = ', '\r\nids_name = ');
+        const misc = this.extractInis('DATA\\EQUIPMENT\\misc_equip.ini', '\r\nnickname = ', '\r\nids_name = ');
         this.equipment = new Map([...engines, ...equipment, ...weapons, ...misc]);
         return this.parsePlayerFiles();
     }
@@ -50,14 +50,14 @@ class Parser {
      */
     infocardCheck = () => {
         const infocardPath = `${path.dirname(fileURLToPath(import.meta.url))}\\infocards.txt`;
-        if(!fs.existsSync(infocardPath)) {
+        if (!fs.existsSync(infocardPath)) {
             throw new Error(`${infocardPath} does not exist. Please run ${process.cwd()}\\FLInfocardIE.exe and export infocards.txt to this location.`);
         }
         else {
             const infocards = new Map();
             let line = fs.readFileSync(infocardPath, 'utf-8');
             line = line.split(/\n|\r/g).filter((infocard) => infocard.length);
-            for(let i = 0; i < line.length; i+=3) {
+            for (let i = 0; i < line.length; i += 3) {
                 infocards.set(line[i], line[Number(i) + 2]);
             }
             return infocards;
@@ -73,29 +73,29 @@ class Parser {
      */
     extractInis = (directory, propertySearch, propertySearch2) => {
         // Read from file and split on [] which neatly splits into chunks
-        const entries = fs.readFileSync(`${this.installDirectory}\\${directory}`,'utf8').split(/\[.*\]/g);
+        const entries = fs.readFileSync(`${this.installDirectory}\\${directory}`, 'utf8').split(/\[.*\]/g);
         const map = new Map();
-        for(const line of entries) {
+        for (const line of entries) {
             // Grab the string position just after the 1st search string
             const propertyPosition = line.indexOf(propertySearch) + propertySearch.length;
             // Check we actually found something
-            if(propertyPosition >= propertySearch.length) {
+            if (propertyPosition >= propertySearch.length) {
                 // Grab thes tring position just after the 2nd search string
                 const propertyPosition2 = line.indexOf(propertySearch2) + propertySearch2.length;
                 // Grab the 1st property
                 const property = line.substring(propertyPosition, line.indexOf('\r\n', propertyPosition));
                 // Check the property was found and that we found something for the 2nd serach string
-                if(property && propertyPosition2 >= propertySearch2.length) {
+                if (property && propertyPosition2 >= propertySearch2.length) {
                     // Grab the corresponding infocard using the id we found
                     const property2 = this.infocards.get(line.substring(propertyPosition2, line.indexOf('\r\n', propertyPosition2)));
                     // Check we got an infocard, and set the map
-                    if(property2) {
+                    if (property2) {
                         map.set(property.toLowerCase(), property2);
                     }
                 }
             }
         }
-        return map; 
+        return map;
     }
 
     /**
@@ -181,14 +181,14 @@ class Parser {
             return this;
         }
         // If the filter has changed then we need to reparse since we'd be missing elements otherwise
-        if(range !== this.lastRange || rangeType !== this.lastRangeType) {
+        if (range !== this.lastRange || rangeType !== this.lastRangeType) {
             this.parsePlayerFiles();
         }
         // Set the current range to be our last ran range for the next time filter() runs
         this.lastRange = range;
         this.lastRangeType = rangeType;
         // Iterate in reverse because we're removing from the array as we go
-        for(let i = this.players.length = 1; i >= 0; i--) {
+        for (let i = this.players.length = 1; i >= 0; i--) {
             // Apply the range to the current date to get something to filter against
             let dateAfter = new Date(Date.now() - range * 24 * 60 * 60 * 1000);
             if ((rangeType == 'LastSeen' && this.players[i].lastseen < dateAfter) || (rangeType == 'Created' && this.players[i].created < dateAfter)) {
@@ -224,7 +224,7 @@ class Parser {
                     player.internalShip = config.Player.ship_archetype ? this.hash.getNickname(Number(config.Player.ship_archetype)) : null;
                     player.ship = player.internalShip ? this.ships.get(player.internalShip.toLowerCase()) : null;
                     player.internalBase = config.Player.base ? config.Player.base : null;
-                    player.base = config.Player.base ? this.universe.get(config.Player.base.toLowerCase()): 'In Space';
+                    player.base = config.Player.base ? this.universe.get(config.Player.base.toLowerCase()) : 'In Space';
                     player.internalFaction = config.Player.rep_group ? config.Player.rep_group : null;
                     player.faction = config.Player.rep_group ? this.factions.get(config.Player.rep_group) : 'Freelancer';
 
@@ -253,38 +253,39 @@ class Parser {
                             else
                                 player.kills = parseInt(config.mPlayer.ship_type_killed.split(',')[1]);
                         }
+                    }
 
-                        if(config.Player.equip) {
-                            player.equipment = {};
-                            player.lights = {};
+                    if (config.Player.equip) {
+                        player.equipment = {};
+                        player.lights = {};
 
-                            for(const equipString of config.Player.equip) {
-                                const [hash, hardpoint, quantity] = equipString.split(', ');
-                                const internalNickname = this.hash.getNickname(Number(hash));
+                        for (const equipString of config.Player.equip) {
+                            const [hash, hardpoint, quantity] = equipString.split(', ');
+                            quantity = Math.round(Number(quantity));
+                            const internalNickname = this.hash.getNickname(Number(hash));
 
-                                if (hardpoint.toLowerCase().includes('light')) {
-                                    if (player.lights.hasOwnProperty(internalNickname)) {
-                                        player.lights[internalNickname] += quantity;
+                            if (hardpoint.toLowerCase().includes('light')) {
+                                if (player.lights.hasOwnProperty(internalNickname)) {
+                                    player.lights[internalNickname] += quantity;
+                                }
+                                else {
+                                    player.lights[internalNickname] = quantity;
+                                }
+                            } else {
+                                const nickname = this.equipment.get(internalNickname) || internalNickname;
+                                if (internalNickname && !internalNickname.includes('contrail')) {
+                                    if (player.equipment.hasOwnProperty(nickname)) {
+                                        player.equipment[nickname] += quantity;
                                     }
                                     else {
-                                        player.lights[internalNickname] = quantity;
-                                    }
-                                } else {
-                                    const nickname = this.equipment.get(internalNickname) || internalNickname;
-                                    if (internalNickname && !internalNickname.includes('contrail')) {
-                                        if(player.equipment.hasOwnProperty(nickname)) {
-                                            player.equipment[nickname] += quantity;
-                                        }
-                                        else {
-                                            player.equipment[nickname] = quantity;
-                                        }
+                                        player.equipment[nickname] = quantity;
                                     }
                                 }
                             }
                         }
                     }
-                    this.players.push(player);
                 }
+                this.players.push(player);
             }
         }
         return this;
