@@ -260,7 +260,7 @@ class Parser {
                         player.lights = {};
 
                         for (const equipString of config.Player.equip) {
-                            const [hash, hardpoint, quantity] = equipString.split(', ');
+                            let [hash, hardpoint, quantity] = equipString.split(', ');
                             quantity = Math.round(Number(quantity));
                             const internalNickname = this.hash.getNickname(Number(hash));
 
