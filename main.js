@@ -255,20 +255,29 @@ class Parser {
                         }
 
                         if(config.Player.equip) {
-                            player.equipment = [];
-                            player.lights = [];
+                            player.equipment = {};
+                            player.lights = {};
 
                             for(const equipString of config.Player.equip) {
                                 const [hash, hardpoint, quantity] = equipString.split(', ');
                                 const internalNickname = this.hash.getNickname(Number(hash));
 
-                                if(hardpoint.toLowerCase().includes('light')) {
-                                    player.lights.push({[internalNickname] : quantity});
-                                }
-                                else {
-                                    const nickname = this.equipment.get(internalNickname);
-                                    if(internalNickname && !internalNickname.includes('contrail')) {
-                                        player.equipment.push({[nickname ? nickname : internalNickname] : quantity});
+                                if (hardpoint.toLowerCase().includes('light')) {
+                                    if (player.lights.hasOwnProperty(internalNickname)) {
+                                        player.lights[internalNickname] += quantity;
+                                    }
+                                    else {
+                                        player.lights[internalNickname] = quantity;
+                                    }
+                                } else {
+                                    const nickname = this.equipment.get(internalNickname) || internalNickname;
+                                    if (internalNickname && !internalNickname.includes('contrail')) {
+                                        if(player.equipment.hasOwnProperty(nickname)) {
+                                            player.equipment[nickname] += quantity;
+                                        }
+                                        else {
+                                            player.equipment[nickname] = quantity;
+                                        }
                                     }
                                 }
                             }
